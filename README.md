@@ -27,7 +27,7 @@ This automatically sets up Python environments, installs Node modules, and check
 ```bash
 cp .env.example .env
 ```
-Open `.env` and fill in `POSTGRES_PASSWORD` and `DJANGO_SECRET_KEY`.
+> The defaults work as-is for local development. No changes needed right now.
 
 ### Step 6 — Start the local data layer (requires Docker Desktop running)
 ```bash
