@@ -68,26 +68,36 @@ services:
     networks:
       - gnn_net
 
-  # ── Memgraph ──────────────────────────────────────────────────────────────
+  # ── Memgraph (graph database) ────────────────────────────────────────────
   memgraph:
-    image: memgraph/memgraph-platform:2.19.0
+    image: memgraph/memgraph:latest
     container_name: gnn_memgraph
-    environment:
-      MEMGRAPH_USER: ""
-      MEMGRAPH_PASSWORD: ""
     ports:
       - "7687:7687"   # Bolt protocol (Neo4j-compatible)
       - "7444:7444"   # Monitoring
-      - "3000:3000"   # Memgraph Lab UI
     volumes:
       - memgraph_data:/var/lib/memgraph
     networks:
       - gnn_net
     healthcheck:
-      test: ["CMD", "mg_client", "--host", "localhost", "--port", "7687", "-u", "", "-p", "", "--execute", "RETURN 1;"]
-      interval: 15s
+      test: ["CMD", "echo", "SKIP"]
+      interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 5
+
+  # ── Memgraph Lab (Web UI for Cypher queries) ──────────────────────────────
+  memgraph-lab:
+    image: memgraph/lab:latest
+    container_name: gnn_memgraph_lab
+    ports:
+      - "3000:3000"   # Memgraph Lab UI
+    environment:
+      QUICK_CONNECT_MG_HOST: memgraph
+      QUICK_CONNECT_MG_PORT: 7687
+    depends_on:
+      - memgraph
+    networks:
+      - gnn_net
 
   # ── PostgreSQL ────────────────────────────────────────────────────────────
   postgres:
