@@ -100,8 +100,8 @@ pub enum ClassId {
     ProcessActivity = 4001,
     /// OCSF 4004 — File System Activity
     FileActivity = 4004,
-    /// OCSF 4001 — Network Activity  
-    NetworkActivity = 4001,
+    /// OCSF 4003 — Network Activity  
+    NetworkActivity = 4003,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
