@@ -1,6 +1,6 @@
 # GNN Threat Hunter
 
-## Getting Started (For Team Members)
+## Getting Started
 
 ### Step 1 — Fork the repo
 Go to [github.com/vaishnaviandom/gnn-threat-hunter](https://github.com/vaishnaviandom/gnn-threat-hunter) and click **Fork** → fork to your personal GitHub account.
