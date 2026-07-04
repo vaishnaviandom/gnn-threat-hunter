@@ -1,0 +1,132 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GNN Threat Hunter — Local macOS Development Data Layer
+#
+# Services:
+#   redpanda    — Kafka-compatible message broker (C++, Apple Silicon native)
+#   redpanda-console — Web UI for Redpanda topic inspection
+#   memgraph    — In-memory graph database (Phase 4)
+#   memgraph-lab — Web UI for Cypher queries against Memgraph
+#   postgres    — Relational store for Django ORM (Phase 5)
+#   clickhouse  — Columnar analytics store (Phase 5)
+#
+# All services share the `gnn_net` bridge network so they can resolve
+# each other by service name (e.g., postgres:5432, memgraph:7687).
+# ─────────────────────────────────────────────────────────────────────────────
+
+networks:
+  gnn_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redpanda_data:
+  memgraph_data:
+  clickhouse_data:
+
+services:
+
+  # ── Redpanda ──────────────────────────────────────────────────────────────
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.2.10
+    container_name: gnn_redpanda
+    command:
+      - redpanda
+      - start
+      - --smp=1
+      - --memory=512M
+      - --overprovisioned
+      - --kafka-addr=internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr=internal://redpanda:9092,external://localhost:19092
+      - --pandaproxy-addr=internal://0.0.0.0:8082,external://0.0.0.0:18082
+      - --advertise-pandaproxy-addr=internal://redpanda:8082,external://localhost:18082
+    ports:
+      - "19092:19092"   # Kafka API (host → containers)
+      - "18082:18082"   # Pandaproxy REST
+      - "19644:9644"    # Admin API
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+    networks:
+      - gnn_net
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "info"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:v2.7.2
+    container_name: gnn_redpanda_console
+    environment:
+      KAFKA_BROKERS: "redpanda:9092"
+    ports:
+      - "8080:8080"
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    networks:
+      - gnn_net
+
+  # ── Memgraph ──────────────────────────────────────────────────────────────
+  memgraph:
+    image: memgraph/memgraph-platform:2.19.0
+    container_name: gnn_memgraph
+    environment:
+      MEMGRAPH_USER: ""
+      MEMGRAPH_PASSWORD: ""
+    ports:
+      - "7687:7687"   # Bolt protocol (Neo4j-compatible)
+      - "7444:7444"   # Monitoring
+      - "3000:3000"   # Memgraph Lab UI
+    volumes:
+      - memgraph_data:/var/lib/memgraph
+    networks:
+      - gnn_net
+    healthcheck:
+      test: ["CMD", "mg_client", "--host", "localhost", "--port", "7687", "-u", "", "-p", "", "--execute", "RETURN 1;"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  # ── PostgreSQL ────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: gnn_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gnn_threatdb}
+      POSTGRES_USER: ${POSTGRES_USER:-gnn_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_now}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gnn_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gnn_user} -d ${POSTGRES_DB:-gnn_threatdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ── ClickHouse ────────────────────────────────────────────────────────────
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8-alpine
+    container_name: gnn_clickhouse
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-threat_analytics}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    ports:
+      - "8123:8123"   # HTTP interface
+      - "9000:9000"   # Native TCP protocol
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    networks:
+      - gnn_net
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10

@@ -1,0 +1,15 @@
+django
+djangorestframework
+psycopg2-binary
+python-dotenv
+pydantic
+# Phase 4+
+neo4j          # Bolt driver shared by Memgraph (Neo4j-compatible)
+clickhouse-driver
+# Phase 6+
+sentence-transformers
+# Phase 9+
+onnxruntime
+coremltools; sys_platform == "darwin"
+# Utilities
+gunicorn

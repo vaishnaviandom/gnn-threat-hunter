@@ -1,0 +1,12 @@
+django
+djangorestframework
+pydantic
+python-dotenv
+# Phase 9: Model inference
+onnxruntime
+coremltools; sys_platform == "darwin"
+numpy
+# Async batching support
+asyncio-throttle
+gunicorn
+uvicorn[standard]   # ASGI server for Django async views

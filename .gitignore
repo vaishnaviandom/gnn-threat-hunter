@@ -1,0 +1,64 @@
+# ── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+*.sqlite3
+*.log
+
+# ── Django ───────────────────────────────────────────────
+backend/staticfiles/
+backend/media/
+backend/db.sqlite3
+
+# ── Rust ─────────────────────────────────────────────────
+target/
+Cargo.lock            # lock files for binaries only; libs keep theirs
+*.rlib
+
+# ── Node / Next.js ───────────────────────────────────────
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp
+.pnp.js
+
+# ── Environment / Secrets ────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.secret
+
+# ── Docker ───────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Solana / Anchor ──────────────────────────────────────
+.anchor/
+test-ledger/
+solana/.anchor/
+
+# ── macOS ────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ── IDEs ─────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo

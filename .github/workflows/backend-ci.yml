@@ -1,0 +1,54 @@
+name: CI — Backend (Django)
+
+on:
+  push:
+    paths:
+      - "backend/**"
+  pull_request:
+    paths:
+      - "backend/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: gnn_threatdb
+          POSTGRES_USER: gnn_user
+          POSTGRES_PASSWORD: ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run Django checks
+        env:
+          POSTGRES_DB: gnn_threatdb
+          POSTGRES_USER: gnn_user
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: "5432"
+          DJANGO_SECRET_KEY: ci-secret-key
+          DJANGO_DEBUG: "True"
+        run: |
+          cd backend
+          python manage.py check
+          python manage.py migrate --run-syncdb

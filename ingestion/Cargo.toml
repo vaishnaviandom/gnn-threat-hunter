@@ -1,0 +1,34 @@
+[package]
+name = "gnn_ingestion"
+version = "0.1.0"
+edition = "2021"
+description = "Phase 3 — Rust Kafka consumer that maps OCSF telemetry to graph edges for Memgraph"
+
+[[bin]]
+name = "gnn_ingestion"
+path = "src/main.rs"
+
+[dependencies]
+# Kafka / Redpanda client
+rdkafka = { version = "0.37", features = ["cmake-build"] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Memgraph/Neo4j Bolt driver
+rsmgclient = "2.0"        # Community Rust Bolt client for Memgraph
+
+# Hashing (SHA-256 for Node IDs — Phase 12 prep)
+sha2 = "0.10"
+hex = "0.4"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Config / env
+dotenvy = "0.15"
